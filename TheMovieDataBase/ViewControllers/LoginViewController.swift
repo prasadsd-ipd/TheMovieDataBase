@@ -10,11 +10,12 @@ import UIKit
 
 class LoginViewController: UIViewController {
 
+    //MARK:-
+    var viewModel: LoginViewModel?
+    //MARK:-
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
     }
-
-
 }
 
