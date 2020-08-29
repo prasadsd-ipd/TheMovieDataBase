@@ -20,9 +20,9 @@ class LoginViewModel {
         URLSession.shared.dataTask(with: MovieServices.requestToken) { (data, response, error) in
             
             if let error = error {
-                print("Token error \(error.localizedDescription)")
+                debugPrint("Token error \(error.localizedDescription)")
             } else if let data = data {
-                print("token response \(data.count)")
+                debugPrint("token response \(data.count)")
             }
         }
     }
