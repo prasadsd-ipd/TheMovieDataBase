@@ -31,7 +31,6 @@ struct MovieCellViewModel {
         return movieData?.posterPath ?? "Movie Poster"
     }
     
-    
 }
 
 extension MovieCellViewModel: MovieRepresentable {

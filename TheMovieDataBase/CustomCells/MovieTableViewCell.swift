@@ -34,11 +34,11 @@ class MovieTableViewCell: UITableViewCell {
     
     // MARK: - Configuration
     
-    func configure(with representable: MovieRepresentable, imageData: Data) {
+    func configure(with representable: MovieRepresentable) {
         
         movieTitle.text = representable.title
         movieReleaseDate.text = representable.releaseDate
         movieDescription.text = representable.overview
-        movieImageView?.image = UIImage(data: imageData)
+        movieImageView?.loadThumbnail(urlSting: representable.posterPath)
     }
 }

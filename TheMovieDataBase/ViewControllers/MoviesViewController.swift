@@ -53,7 +53,9 @@ class MoviesViewController: UIViewController {
                 self?.moviesTableView.reloadData()
             }
         }
-        self.refreshControl.endRefreshing()
+        if self.refreshControl.isRefreshing {
+            self.refreshControl.endRefreshing()
+        }
     }
     
     @objc private func refreshMovieData(_ sender: Any) {
@@ -97,15 +99,13 @@ extension MoviesViewController: UITableViewDataSource {
             fatalError("No View Model Present")
         }
         
-        let cellViewModel = viewModel.cellViewModel(for: indexPath.row)
-        self.viewModel?.getImageData(with: cellViewModel.posterPath, onCompletion: { [weak self] (data, error) in
-            if error != nil {
-                self?.showAlert(of: .noDataAvailable)
-            } else if let data = data {
-                // Configure Cell
-                cell.configure(with: cellViewModel, imageData: data)
-            }
-        })
+        // Configure Cell
+        cell.configure(with: viewModel.cellViewModel(for: indexPath.row))
+        
+//        if indexPath.row == viewModel.totalMovies - 1 {
+//            self.currentPage += 1
+//            self.viewModel?.fetchMoviesData(forPage: self.currentPage)
+//        }
         return cell
     }
     
@@ -116,8 +116,8 @@ extension MoviesViewController: UITableViewDataSource {
             fatalError("No View Model Present")
         }
         
-        // Will load new content when scrolled to last cells
-        if indexPath.row == viewModel.totalMovies - 2 {
+        // Will load new content when scrolled to last cell
+        if indexPath.row == viewModel.totalMovies - 1 {
             self.currentPage += 1
             // Fetchs next page data
             if shouldShowSearchResults {

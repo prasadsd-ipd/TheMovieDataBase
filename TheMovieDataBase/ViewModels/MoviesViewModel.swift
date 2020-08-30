@@ -7,9 +7,9 @@
 //
 
 import Foundation
-//import Reachability
+import Reachability
 
-//let reachability = try! Reachability()
+let reachability = try! Reachability()
 
 class MoviesViewModel {
     
@@ -36,26 +36,6 @@ class MoviesViewModel {
     
     init() {
         fetchMoviesData()
-        
-//        reachability.net
-//        reachability.whenReachable = { reachability in
-//            if reachability.connection == .wifi {
-//                print("Reachable via WiFi")
-//            } else {
-//                print("Reachable via Cellular")
-//            }
-//        }
-//        reachability.whenUnreachable = { _ in
-//            print("Not reachable")
-//        }
-//
-//        do {
-//            try reachability.startNotifier()
-//        } catch {
-//            print("Unable to start notifier")
-//        }
-        
-        
     }
     
     func cellViewModel(for index: Int) -> MovieCellViewModel {
@@ -85,7 +65,7 @@ class MoviesViewModel {
                         self?.moviesList = trendingMovies.results
                         self?.didFetchDataCompletion?(nil)
                     } catch {
-                        debugPrint("error in decoding \(error.localizedDescription)")
+                        debugPrint("error in decoding \(error)")
                         self?.didFetchDataCompletion?(.noMoviesData)
                     }
                 }
