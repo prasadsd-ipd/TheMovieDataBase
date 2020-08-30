@@ -7,43 +7,86 @@
 //
 
 import Foundation
+//import Reachability
+
+//let reachability = try! Reachability()
 
 class MoviesViewModel {
     
     //MARK:- Types
+    
     enum MoviesDataError {
         case noMoviesData
         case noImageData
     }
     
-    typealias DidFetchDataCompletion = (PopularMovies?, MoviesDataError?) -> Void
-    typealias DidFetchImageDataCompletion = (Data?, MoviesDataError?) -> Void
+    typealias DidFetchDataCompletion = (MoviesDataError?) -> Void
+
+    //MARK:- Properties
     
     var didFetchDataCompletion: DidFetchDataCompletion?
-    var didFetchImageDataCompletion: DidFetchImageDataCompletion?
     
-    //MARK:- Initialization
-    init() {
-        fetchMoviesData()
+    var moviesList: [MovieRepresentable]?
+    
+    var totalMovies: Int {
+        return moviesList?.count ?? 0
     }
     
-    //MARK:- Fetching Methods
+    //MARK:- Initialization
+    
+    init() {
+        fetchMoviesData()
+        
+//        reachability.net
+//        reachability.whenReachable = { reachability in
+//            if reachability.connection == .wifi {
+//                print("Reachable via WiFi")
+//            } else {
+//                print("Reachable via Cellular")
+//            }
+//        }
+//        reachability.whenUnreachable = { _ in
+//            print("Not reachable")
+//        }
+//
+//        do {
+//            try reachability.startNotifier()
+//        } catch {
+//            print("Unable to start notifier")
+//        }
+        
+        
+    }
+    
+    func cellViewModel(for index: Int) -> MovieCellViewModel {
+        return MovieCellViewModel(movieData: moviesList?[index])
+    }
+    
+    //MARK:- Helper Methods
     /// Fetches movies list
     func fetchMoviesData(forPage: Int = 1) {
 
-        URLSession.shared.dataTask(with: MovieServices.findPopularMovies(pageNo: forPage)) { [weak self] (data, response, error) in
+        //Initialising Request
+        let fetchMoviesRequest = MovieServices.findPopularMovies(pageNo: forPage)
+        
+        //Create data task
+        URLSession.shared.dataTask(with: fetchMoviesRequest) { [weak self] (data, response, error) in
+            
             DispatchQueue.main.async {
                 if let error = error {
                     debugPrint("request failed with error \(error.localizedDescription)")
-                    self?.didFetchDataCompletion?(nil, .noMoviesData)
+                    self?.didFetchDataCompletion?(.noMoviesData)
                 } else if let data = data {
+                    //Initialising Json Decoder
                     let decoder = JSONDecoder()
+                    
                     do {
                         let trendingMovies = try decoder.decode(PopularMovies.self, from: data)
-                        self?.didFetchDataCompletion?(trendingMovies, nil)
+                        self?.moviesList = trendingMovies.results
+                        self?.didFetchDataCompletion?(nil)
                     } catch {
                         debugPrint("error in decoding \(error.localizedDescription)")
-                        self?.didFetchDataCompletion?(nil, .noMoviesData)
+                        self?.didFetchDataCompletion?(.noMoviesData)
                     }
                 }
             }

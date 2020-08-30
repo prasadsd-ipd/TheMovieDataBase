@@ -12,10 +12,22 @@ class LoginViewController: UIViewController {
 
     //MARK:-
     var viewModel: LoginViewModel?
+    
     //MARK:-
+    @IBOutlet weak var usernameTextField: UITextField!
+    @IBOutlet weak var passwordTextField: UITextField!
+    
+    
+    //MARK:- View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+//        debugPrint(viewModel!)
+    }
+    
+    //MARK:- Custom methods
+    @IBAction func loginAction(_ sender: Any) {
+        
     }
 }
 

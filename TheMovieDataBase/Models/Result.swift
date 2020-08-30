@@ -13,7 +13,7 @@ struct Result: Codable {
     let popularity: Double
     let voteCount: Int
     let video: Bool
-    let posterPath: String?
+    let posterPath: String
     let id: Int
     let adult: Bool
     let backdropPath: String?
@@ -40,9 +40,7 @@ struct Result: Codable {
         case releaseDate = "release_date"
     }
 }
-//
-//enum OriginalLanguage: String, Codable {
-//    case en = "en"
-//    case es = "es"
-//    case ko = "ko"
-//}
+
+extension Result: MovieRepresentable {
+    
+}

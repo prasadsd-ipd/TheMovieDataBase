@@ -27,39 +27,37 @@ class MoviesViewController: UIViewController {
     
     @IBOutlet weak var moviesTableView: UITableView!
     
-    var searchController: UISearchController!
+    private var searchController: UISearchController!
     
-    var shouldShowSearchResults = false
+    private var shouldShowSearchResults = false
+        
+    private var currentPage = 1
     
-    var moviesList: [Result]?
-    
-    var currentPage = 1
+    private let refreshControl = UIRefreshControl()
     
     //MARK:- View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         configureSearchController()
+        moviesTableView.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(refreshMovieData(_:)), for: .valueChanged)
     }
     
     //MARK:- Custom Methods
     private func setupViewModel(with viewModel: MoviesViewModel) {
-        viewModel.didFetchDataCompletion = { [weak self] (moviesData, error) in
+        viewModel.didFetchDataCompletion = { [weak self] (error) in
             if error != nil {
                 self?.showAlert(of: .noDataAvailable)
-            } else if let moviesData = moviesData {
-                if let _ = self?.moviesList {
-                    self?.moviesList? += moviesData.results
-                } else {
-                    self?.moviesList = moviesData.results
-                }
-                DispatchQueue.main.async {
-                    self?.moviesTableView.reloadData()
-                }
             } else {
-                self?.showAlert(of: .noDataAvailable)
+                self?.moviesTableView.reloadData()
             }
         }
+        self.refreshControl.endRefreshing()
+    }
+    
+    @objc private func refreshMovieData(_ sender: Any) {
+        self.viewModel?.fetchMoviesData()
     }
     
     ///Helper mehtod to show alerts
@@ -83,39 +81,43 @@ class MoviesViewController: UIViewController {
 }
 
 //MARK:- UITableViewDataSource & UITableViewDelegate
-extension MoviesViewController: UITableViewDataSource, UITableViewDelegate {
+extension MoviesViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return moviesList?.count ?? 0
+        return viewModel?.totalMovies ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let tableCell = tableView.dequeueReusableCell(withIdentifier: "MovieCell") as! MovieCell
-        if let movie = moviesList?[indexPath.row] {
-            tableCell.movieTitle?.text = movie.title
-            tableCell.movieReleaseDate?.text = self.viewModel?.dateFormatter(movie.releaseDate)
-            tableCell.movieDescription?.text = movie.overview
-            if let imagePath = movie.posterPath {
-                self.viewModel?.getImageData(with: imagePath, onCompletion: { [weak self] (data, error) in
-                    if error != nil {
-                        self?.showAlert(of: .noDataAvailable)
-                    } else if let data = data {
-                        if let cell = tableView.cellForRow(at: indexPath) as? MovieCell {
-                            cell.movieImageView?.image = UIImage(data: data)
-                        }
-                    }
-                })
-            }
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MovieTableViewCell.reuseIdentifier, for: indexPath) as? MovieTableViewCell else {
+            fatalError("Unable to DequeueTable View Cell")
         }
-        return tableCell
+
+        guard let viewModel = viewModel else {
+            fatalError("No View Model Present")
+        }
+        
+        let cellViewModel = viewModel.cellViewModel(for: indexPath.row)
+        self.viewModel?.getImageData(with: cellViewModel.posterPath, onCompletion: { [weak self] (data, error) in
+            if error != nil {
+                self?.showAlert(of: .noDataAvailable)
+            } else if let data = data {
+                // Configure Cell
+                cell.configure(with: cellViewModel, imageData: data)
+            }
+        })
+        return cell
     }
     
     /// To load next available data
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         
+        guard let viewModel = viewModel else {
+            fatalError("No View Model Present")
+        }
+        
         // Will load new content when scrolled to last cells
-        if indexPath.row == moviesList!.count - 2 {
+        if indexPath.row == viewModel.totalMovies - 2 {
             self.currentPage += 1
             // Fetchs next page data
             if shouldShowSearchResults {
@@ -125,7 +127,6 @@ extension MoviesViewController: UITableViewDataSource, UITableViewDelegate {
                             debugPrint("Error while searching: \(String(describing: error?.localizedDescription))")
                             self?.showAlert(of: .noDataAvailable)
                         } else if results != nil {
-                            self?.moviesList?.append(contentsOf: results!)
                             self?.moviesTableView.reloadData()
                         }
                     }
@@ -183,7 +184,7 @@ extension MoviesViewController: UISearchBarDelegate, UISearchResultsUpdating {
                     debugPrint("Error while searching: \(String(describing: error?.localizedDescription))")
                     self?.showAlert(of: .noDataAvailable)
                 } else if results != nil {
-                    self?.moviesList = results
+                    self?.viewModel?.moviesList = results!
                     self?.moviesTableView.reloadData()
                 }
             }

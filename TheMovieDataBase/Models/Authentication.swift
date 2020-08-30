@@ -9,7 +9,7 @@
 import Foundation
 
 //MARK:- TokenResponse
-struct TokenResponse: Codable {
+struct TokenResponse: Decodable {
     let success: Bool
     let expiresAt, requestToken: String
 
@@ -20,16 +20,46 @@ struct TokenResponse: Codable {
     }
 }
 
+//MARK:- SessionRequest
+struct SessionRequestParameter: Encodable {
+    let requestToken: String
+    
+    enum CodingKeys: String, CodingKey {
+        case requestToken = "request_token"
+    }
+}
+
 //MARK:- SessionResponse
-struct SessionResponse: Codable {
+struct SessionResponse: Decodable {
     let success: Bool
-    let sessionID: String
+    let sessionID: String?
+    let statusMessage: String?
 
     enum CodingKeys: String, CodingKey {
         case success
         case sessionID = "session_id"
+        case statusMessage = "status_message"
     }
 }
 
-//MARK:- LoginResponse
+// MARK: - LoginRequest
+struct LoginRequest: Encodable {
+    let username, password, requestToken: String
 
+    enum CodingKeys: String, CodingKey {
+        case username, password
+        case requestToken = "request_token"
+    }
+}
+
+// MARK: - LoginResponse
+struct LoginResponse: Decodable {
+    let success: Bool
+    let expiresAt, requestToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case success
+        case expiresAt = "expires_at"
+        case requestToken = "request_token"
+    }
+}
